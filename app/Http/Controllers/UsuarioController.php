@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Usuarios\Usuario;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class UsuarioController extends Controller
 {
@@ -14,9 +14,14 @@ class UsuarioController extends Controller
    */
   public function index()
   {
-    $query = "SELECT * FROM usuarios";
+    $usuarios = Usuario::where('usuario', 'LIKE', "%us%")
+      ->where('password', '=', '12312')
+      ->where('id', 3)
+      ->get();
 
-    $usuarios = DB::select($query);
+//    $query = "SELECT * FROM usuarios where usuario LIKE "%us% AND password = '12312' AND id = 3";
+//
+//    $usuarios = DB::select($query);
 
     return response([
       'usuarios' => $usuarios
@@ -32,30 +37,46 @@ class UsuarioController extends Controller
   public function store()
   {
     $bodyRequest = request()->post();
-    $id = $bodyRequest['id'];
-    $usuario = $bodyRequest['usuario'];
-    $password = $bodyRequest['password'];
 
-    $query = "INSERT INTO usuarios(id, usuario, password) VALUES(?, ?, ?)";
-//
-    $ex = DB::insert($query, [
-      $id,
-      $usuario,
-      $password
-    ]);
-//
-    if (!$ex) {
-      return response([
-        'message' => 'Error al crear',
-      ], 400);
-    }
+//    [
+//      'id' => 1,
+//      'usuario' => 'asdfasd',
+//      'password' => 'asdfasdf'
+//    ]
+
+//    $id = $bodyRequest['id'];
+//    $usuario = $bodyRequest['usuario'];
+//    $password = $bodyRequest['password'];
+
+    $u = new Usuario($bodyRequest);
+//    $u->id = 99;
+//    $u->id = $id;
+//    $u->usuario = $usuario;
+//    $u->password = $password;
+
+    $u->save();
+
+//    $query = "INSERT INTO usuarios(id, usuario, password) VALUES(?, ?, ?)";
+////
+//    $ex = DB::insert($query, [
+//      $id,
+//      $usuario,
+//      $password
+//    ]);
+////
+//    if (!$ex) {
+//      return response([
+//        'message' => 'Error al crear',
+//      ], 400);
+//    }
 
     return response([
-      'message'  => 'Creado',
-      'id'       => $id,
-      'usuario'  => $usuario,
-      'password' => $password,
-      'ex'       => $ex
+      'message' => 'Creado',
+      'u'       => $u
+//      'id'       => $id,
+//      'usuario'  => $usuario,
+//      'password' => $password,
+//      'ex'       => $ex
     ], 200);
   }
 
@@ -67,9 +88,16 @@ class UsuarioController extends Controller
    */
   public function show($id)
   {
-    $query = "SELECT * FROM usuarios WHERE id = ?";
+    $usuario = Usuario::select([
+      'usuario',
+      'id'
+    ])
+      ->where('id', $id)
+      ->first();
 
-    $usuario = DB::selectOne($query, [$id]);
+//    $query = "SELECT usuario, id FROM usuarios WHERE id = ?";
+//
+//    $usuario = DB::selectOne($query, [$id]);
 
     if (!$usuario) {
       return response([
@@ -91,7 +119,21 @@ class UsuarioController extends Controller
    */
   public function update(Request $request, $id)
   {
-    //
+    $usuario = Usuario::find($id);
+
+    if (!$usuario) {
+      return response([
+        'message' => 'El usuario no pudo ser encontrado'
+      ], 400);
+    }
+
+    $usuario->usuario = 'nuevo usuario';
+    $usuario->password = 'bbbbbb';
+
+    $usuario->save();
+    return response([
+      'usuario' => $usuario
+    ], 200);
   }
 
   /**
@@ -102,6 +144,16 @@ class UsuarioController extends Controller
    */
   public function destroy($id)
   {
-    //
+    $usuario = Usuario::find($id);
+    if (!$usuario) {
+      return response([
+        'message' => 'El usuario no pudo ser encontrado'
+      ], 400);
+    }
+    $usuario->delete();
+
+    return response([
+      'usuario' => $usuario
+    ], 200);
   }
 }
